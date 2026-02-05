@@ -23,7 +23,7 @@ import { getClaudeFiles } from '@/lib/github'
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -35,7 +35,7 @@ export async function POST(
       )
     }
 
-    const projectId = params.id
+    const { id: projectId } = await params
 
     // Získej user ID
     const { data: user, error: userError } = await supabase
