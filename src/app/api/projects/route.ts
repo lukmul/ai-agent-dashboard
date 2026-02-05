@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { auth } from '@clerk/nextjs/server'
+import { auth, currentUser } from '@clerk/nextjs/server'
 import { supabase } from '@/lib/supabase'
 
 /**
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
 
     if (userError || !user) {
       // User ještě neexistuje v DB - vytvoř ho
-      const { user: clerkUser } = await auth()
+      const clerkUser = await currentUser()
       const email = clerkUser?.emailAddresses?.[0]?.emailAddress
 
       if (!email) {
