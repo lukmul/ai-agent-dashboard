@@ -13,6 +13,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ThemeToggle } from '@/components/ThemeToggle'
 import { FolderGit2, RefreshCw, Plus, ExternalLink } from 'lucide-react'
 import { formatDate } from '@/lib/utils'
 
@@ -79,25 +80,23 @@ export default function ProjectsPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                Spravujte svoje projekty a synchronizujte data z GitHub
-              </p>
-            </div>
-            <Button onClick={() => router.push('/projects/new')}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nový Projekt
+      <div className="container mx-auto px-12 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <Button
+              onClick={() => router.push('/projects/new')}
+              className="bg-blue-500 hover:bg-blue-600"
+            >
+              + Add Project
             </Button>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">
+      <main className="container mx-auto px-12 py-0">
         {projects.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <FolderGit2 className="h-16 w-16 text-gray-400 mb-4" />
@@ -159,27 +158,28 @@ export default function ProjectsPage() {
                     )}
 
                     {/* Actions */}
-                    <div className="flex gap-2 pt-2">
+                    <div className="flex items-center gap-3 justify-end pt-2">
+                      <Button
+                        onClick={() => router.push(`/dashboard?projectId=${project.id}`)}
+                        className="bg-blue-500 hover:bg-blue-600 h-9 px-4 text-sm"
+                      >
+                        View
+                      </Button>
                       <Button
                         variant="outline"
-                        className="flex-1"
-                        onClick={() => router.push(`/dashboard?projectId=${project.id}`)}
+                        onClick={() => handleSync(project.id)}
+                        disabled={!project.github_repo || syncing === project.id}
+                        className={`h-9 px-4 text-sm ${!project.github_repo ? 'opacity-50 cursor-not-allowed' : ''}`}
                       >
-                        Otevřít
+                        {syncing === project.id ? (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-1 animate-spin" />
+                            Syncing...
+                          </>
+                        ) : (
+                          'Sync'
+                        )}
                       </Button>
-                      {project.github_repo && (
-                        <Button
-                          variant="secondary"
-                          onClick={() => handleSync(project.id)}
-                          disabled={syncing === project.id}
-                        >
-                          <RefreshCw
-                            className={`h-4 w-4 ${
-                              syncing === project.id ? 'animate-spin' : ''
-                            }`}
-                          />
-                        </Button>
-                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -1,10 +1,11 @@
 /**
- * Supabase Client Factory
- * 
- * Vytváří Supabase klienty pro různé use cases:
- * - Server-side s Clerk auth
- * - Client-side s anon key
+ * Supabase Server Clients
+ *
+ * Vytváří Supabase klienty pro server-side use cases:
+ * - Server Components s Clerk auth
  * - Admin operace s service role
+ *
+ * Pro client-side použití importuj z './supabase-client'
  */
 
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
@@ -20,7 +21,7 @@ const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
  */
 export async function createServerClient() {
   const { userId, getToken } = await auth()
-  
+
   if (!userId) {
     throw new Error('User not authenticated')
   }
@@ -34,14 +35,6 @@ export async function createServerClient() {
       },
     },
   })
-}
-
-/**
- * Client Component Client
- * Pro použití v 'use client' komponentách.
- */
-export function createBrowserClient() {
-  return createSupabaseClient(supabaseUrl, supabaseAnonKey)
 }
 
 /**

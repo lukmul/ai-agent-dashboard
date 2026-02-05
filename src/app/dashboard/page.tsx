@@ -10,12 +10,14 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { ProjectSwitcher } from '@/components/ProjectSwitcher'
 import { AgentStatusCard } from '@/components/AgentStatusCard'
 import { MetricsChart } from '@/components/MetricsChart'
 import { MemoryBrowser } from '@/components/MemoryBrowser'
+import { ThemeToggle } from '@/components/ThemeToggle'
+import { useRealtimeMetrics } from '@/hooks/useRealtimeMetrics'
 import { Button } from '@/components/ui/button'
 import { RefreshCw, UserCircle } from 'lucide-react'
 
@@ -33,30 +35,10 @@ interface AgentMetric {
 export default function DashboardPage() {
   const { user } = useUser()
   const [projectId, setProjectId] = useState<string | null>(null)
-  const [metrics, setMetrics] = useState<AgentMetric[]>([])
-  const [loading, setLoading] = useState(false)
   const [syncing, setSyncing] = useState(false)
 
-  useEffect(() => {
-    if (projectId) {
-      fetchMetrics()
-    }
-  }, [projectId])
-
-  const fetchMetrics = async () => {
-    if (!projectId) return
-
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/metrics?projectId=${projectId}`)
-      const data = await response.json()
-      setMetrics(data.metrics || [])
-    } catch (error) {
-      console.error('Failed to fetch metrics:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Real-time metrics subscription (automatická aktualizace z Supabase)
+  const { metrics, loading, error } = useRealtimeMetrics(projectId)
 
   const handleSync = async () => {
     if (!projectId) return
@@ -68,8 +50,7 @@ export default function DashboardPage() {
       })
 
       if (response.ok) {
-        // Reload metrics po úspěšné synchronizaci
-        await fetchMetrics()
+        // Metriky se automaticky aktualizují přes useRealtimeMetrics hook
         alert('Synchronizace dokončena!')
       } else {
         const error = await response.json()
@@ -114,6 +95,8 @@ export default function DashboardPage() {
                 </Button>
               )}
 
+              <ThemeToggle />
+
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 <UserCircle className="h-5 w-5" />
                 <span>{user?.emailAddresses?.[0]?.emailAddress}</span>
@@ -137,6 +120,13 @@ export default function DashboardPage() {
         ) : loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-600" />
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <h2 className="text-xl font-semibold text-red-600 mb-2">
+              Chyba při načítání metrik
+            </h2>
+            <p className="text-gray-600">{error.message}</p>
           </div>
         ) : (
           <div className="space-y-8">
